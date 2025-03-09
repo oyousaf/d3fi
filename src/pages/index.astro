@@ -1,0 +1,62 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { fetchCryptoData, fetchCryptoNews } from "../utils/fetchCrypto";
+import type { Crypto, CryptoNewsArticle } from "../utils/fetchCrypto";
+
+const cryptos: Crypto[] = await fetchCryptoData(); 
+const news: CryptoNewsArticle[] = await fetchCryptoNews();
+---
+
+<Layout>
+  <h2 class="text-3xl font-extrabold text-center mb-6">Top 10 Cryptos</h2>
+  <div class="flex flex-wrap justify-center gap-6">
+    {cryptos.length > 0 ? (
+      cryptos.map((crypto: Crypto) => (
+        <div
+          class="p-6 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+          {...{ key: crypto.id }}
+        >
+          <div class="flex flex-col items-center mb-4 text-center">
+            <img src={crypto.imageUrl} alt={crypto.name} class="w-20 h-20 rounded-full shadow-md mb-4" />
+            <h3 class="text-xl font-semibold">
+              {crypto.name} ({crypto.symbol.toUpperCase()})
+            </h3>
+          </div>
+          <div class="space-y-2">
+            <p class="text-lg">Price: £{crypto.current_price.toLocaleString()}</p>
+            <p class="text-lg">Market Cap: £{crypto.market_cap.toLocaleString()}</p>
+            <p class={crypto.price_change_percentage_24h > 0 ? "text-green-600" : "text-red-600"}>
+              {crypto.price_change_percentage_24h.toFixed(2)}%
+            </p>
+          </div>
+          <a href={`/crypto/${crypto.id}`} class="text-teal-700 font-semibold">View Details →</a>
+        </div>
+      ))
+    ) : (
+      <p class="text-center text-lg text-gray-500">Loading or no data available...</p>
+    )}
+  </div>
+
+  <!-- Market Trends Section -->
+  <section class="mt-12">
+    <h2 class="text-3xl font-extrabold text-center mb-6">Market Trends & News</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {news.length > 0 ? (
+        news.map((article: CryptoNewsArticle) => (
+          <div
+            class="p-4 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 bg-gray-300"
+            {...{ key: article.id }}
+          >
+            <h3 class="text-xl font-semibold">{article.title}</h3>
+            <p class="text-gray-700 dark:text-gray-300 text-sm">{article.description}</p>
+            <a href={article.url} target="_blank" rel="noopener noreferrer" class="text-teal-500 font-semibold mt-2 inline-block">
+              Read More →
+            </a>
+          </div>
+        ))
+      ) : (
+        <p class="text-center text-lg text-gray-500">No news available at the moment...</p>
+      )}
+    </div>
+  </section>
+</Layout>

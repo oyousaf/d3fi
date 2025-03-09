@@ -1,0 +1,40 @@
+---
+import DarkModeToggle from '../components/DarkModeToggle.jsx';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Track top 10 cryptocurrencies with live price updates">
+  <title>Crypto Tracker</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/src/styles/global.css" />
+</head>
+
+<body class="transition-colors duration-300">
+  <!-- Header Section -->
+  <header class="p-4 flex justify-between items-center shadow-md rounded-lg">
+    <h1 class="text-xl font-bold">
+      Crypto Tracker
+    </h1>
+    <!-- Dark Mode Toggle Button -->
+    <DarkModeToggle client:only="react" ariaLabel="Toggle dark mode" />
+  </header>
+
+  <!-- Main Content Section -->
+  <main class="p-6 max-w-screen-lg mx-auto text-center">
+    <slot />
+  </main>
+
+  <!-- Footer Section -->
+  <footer class="py-4 text-center mt-8">
+    <p class="text-sm">
+      &copy; 2025 Crypto Tracker. All rights reserved.
+    </p>
+  </footer>
+</body>
+
+</html>

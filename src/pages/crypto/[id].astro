@@ -1,0 +1,26 @@
+---
+import { fetchCryptoData } from '../../utils/fetchCrypto.ts';
+
+// Generate static paths
+export const getStaticPaths = async () => {
+  const cryptoList = await fetchCryptoData();
+
+  return cryptoList.map((crypto) => ({
+    params: { id: crypto.id },
+  }));
+};
+
+const { id } = Astro.params;
+const cryptoData = await fetchCryptoData();
+const selectedCrypto = cryptoData.find((crypto) => crypto.id === id);
+
+if (!selectedCrypto) {
+  throw new Error("Crypto not found");
+}
+---
+
+<h1 class="text-2xl font-bold">{selectedCrypto.name} ({selectedCrypto.symbol.toUpperCase()})</h1>
+<img src={selectedCrypto.imageUrl} alt={selectedCrypto.name} class="w-20 h-20" />
+<p>Price: £{selectedCrypto.current_price}</p>
+<p>Market Cap: £{selectedCrypto.market_cap}</p>
+<p>24h Change: {selectedCrypto.price_change_percentage_24h}%</p>
