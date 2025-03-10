@@ -42,22 +42,22 @@ const news: CryptoNewsArticle[] = await fetchCryptoNews();
     <h2 class="text-3xl font-extrabold text-center mb-6">Market Trends & News</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {news.length > 0 ? (
-        news.map((article: CryptoNewsArticle) => (
-          <div
-            class="p-4 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 bg-gray-300"
-            {...{ key: article.id }}
-          >
-            <h3 class="text-xl font-semibold">{article.title}</h3>
-            <a
-              href={article.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-teal-500 font-semibold mt-2 inline-block"
-            >
-              Read More →
-            </a>
-          </div>
-        ))
+  news.map((article: CryptoNewsArticle) => (
+    <div
+      class="p-4 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 bg-gray-300 text-[#311b92]"
+      {...{ key: article.id }}
+    >
+      <h3 class="text-xl font-semibold">{article.title}</h3>
+      <a
+        href={article.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-teal-500 font-semibold mt-2 inline-block"
+      >
+        Read More →
+      </a>
+    </div>
+  ))
       ) : (
         <p class="text-center text-lg text-gray-500">No news available at the moment...</p>
       )}
