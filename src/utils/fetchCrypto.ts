@@ -73,8 +73,6 @@ export async function fetchCryptoHistoricalData(
   days: number = 30
 ): Promise<CryptoHistoricalData> {
   try {
-    console.log(`Fetching historical data for ID: ${id}`);
-
     const response = await fetch(
       `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=gbp&days=${days}&sparkline=false`
     );
@@ -88,8 +86,6 @@ export async function fetchCryptoHistoricalData(
     if (!data.prices || data.prices.length === 0) {
       throw new Error(`No price data available for ${id}`);
     }
-
-    console.log("Fetched historical data successfully:", data);
 
     return {
       prices: data.prices,
