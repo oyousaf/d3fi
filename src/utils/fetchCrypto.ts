@@ -68,15 +68,28 @@ export type CryptoHistoricalData = {
   total_volumes: number[][];
 };
 
-export async function fetchCryptoHistoricalData(id: string, days: number = 30): Promise<CryptoHistoricalData> {
+export async function fetchCryptoHistoricalData(
+  id: string,
+  days: number = 30
+): Promise<CryptoHistoricalData> {
   try {
+    console.log(`Fetching historical data for ID: ${id}`);
+
     const response = await fetch(
       `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=gbp&days=${days}&sparkline=false`
     );
 
-    if (!response.ok) throw new Error("Failed to fetch crypto historical data");
+    if (!response.ok) {
+      throw new Error(`Failed to fetch historical data for ${id}`);
+    }
 
     const data = await response.json();
+
+    if (!data.prices || data.prices.length === 0) {
+      throw new Error(`No price data available for ${id}`);
+    }
+
+    console.log("Fetched historical data successfully:", data);
 
     return {
       prices: data.prices,
