@@ -4,9 +4,16 @@ import Chart from "chart.js/auto";
 type CryptoChartProps = {
   labels: string[];
   prices: number[];
+  currencyLabel?: string;
 };
 
-export default function CryptoChart({ labels, prices }: CryptoChartProps) {
+function readCssVar(name: string, fallback: string): string {
+  if (typeof window === "undefined") return fallback;
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value || fallback;
+}
+
+export default function CryptoChart({ labels, prices, currencyLabel = "Price (GBP)" }: CryptoChartProps) {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstanceRef = useRef<Chart | null>(null);
 
@@ -16,7 +23,11 @@ export default function CryptoChart({ labels, prices }: CryptoChartProps) {
     const ctx = chartRef.current.getContext("2d");
     if (!ctx) return;
 
-    // Destroy any existing chart before creating a new one
+    const accent = readCssVar("--color-accent", "#0d9488");
+    const ink = readCssVar("--color-ink", "#18181b");
+    const inkMuted = readCssVar("--color-ink-muted", "#52525b");
+    const border = readCssVar("--color-border", "#e4e4e7");
+
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
     }
@@ -27,36 +38,67 @@ export default function CryptoChart({ labels, prices }: CryptoChartProps) {
         labels: labels.length > 0 ? labels : ["Jan", "Feb", "Mar"],
         datasets: [
           {
-            label: "Price (GBP)",
+            label: currencyLabel,
             data: prices.length > 0 ? prices : [200, 250, 300],
-            borderColor: "teal",
+            borderColor: accent,
+            backgroundColor: accent,
             borderWidth: 2,
             fill: false,
-            pointRadius: 5,
-            pointBackgroundColor: "teal",
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: accent,
+            tension: 0.25,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: { intersect: false, mode: "index" },
         scales: {
-          y: { beginAtZero: false },
+          x: {
+            ticks: { color: inkMuted, maxTicksLimit: 8 },
+            grid: { color: border },
+          },
+          y: {
+            beginAtZero: false,
+            ticks: { color: inkMuted },
+            grid: { color: border },
+          },
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            titleColor: ink,
+            bodyColor: ink,
+            backgroundColor: readCssVar("--color-surface-raised", "#f4f4f5"),
+            borderColor: border,
+            borderWidth: 1,
+          },
         },
       },
     });
 
     return () => {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy();
-        chartInstanceRef.current = null;
-      }
+      chartInstanceRef.current?.destroy();
+      chartInstanceRef.current = null;
     };
-  }, [labels, prices]);
+  }, [labels, prices, currencyLabel]);
+
+  const min = prices.length ? Math.min(...prices) : null;
+  const max = prices.length ? Math.max(...prices) : null;
 
   return (
-    <div className="w-full h-[400px] bg-gray-200 p-4 rounded-md">
-      <canvas ref={chartRef} className="w-full h-full"></canvas>
+    <div className="h-[400px] w-full">
+      <canvas
+        ref={chartRef}
+        role="img"
+        aria-label={
+          min !== null && max !== null
+            ? `Line chart of ${currencyLabel} over time, ranging from £${min.toLocaleString()} to £${max.toLocaleString()}.`
+            : `Line chart of ${currencyLabel}.`
+        }
+      />
     </div>
   );
 }

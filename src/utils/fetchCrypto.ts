@@ -1,3 +1,22 @@
+async function fetchWithRetry(url: string, retries = 4): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const response = await fetch(url);
+    if (response.status !== 429) return response;
+
+    const retryAfter = Number(response.headers.get("retry-after"));
+    const backoffMs = Number.isFinite(retryAfter) && retryAfter > 0
+      ? retryAfter * 1000
+      : 500 * 2 ** attempt + Math.random() * 250;
+
+    if (attempt < retries) {
+      await new Promise((resolve) => setTimeout(resolve, backoffMs));
+    } else {
+      return response;
+    }
+  }
+  return fetch(url);
+}
+
 export type Crypto = {
   id: string;
   name: string;
@@ -8,56 +27,65 @@ export type Crypto = {
   price_change_percentage_24h: number;
 };
 
-export async function fetchCryptoData(): Promise<Crypto[]> {
-  try {
-    const response = await fetch(
-      "https://api.coingecko.com/api/v3/coins/markets?vs_currency=gbp&order=market_cap_desc&per_page=10&page=1&sparkline=false"
-    );
+let cryptoDataPromise: Promise<Crypto[]> | null = null;
 
-    if (!response.ok) throw new Error("Failed to fetch crypto data");
+// Memoized so pages that need both the full list (getStaticPaths) and a
+// single entry don't issue duplicate, rate-limit-prone requests per build.
+export function fetchCryptoData(): Promise<Crypto[]> {
+  if (!cryptoDataPromise) {
+    cryptoDataPromise = (async () => {
+      try {
+        const response = await fetchWithRetry(
+          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=gbp&order=market_cap_desc&per_page=10&page=1&sparkline=false"
+        );
 
-    const data = await response.json();
+        if (!response.ok) throw new Error("Failed to fetch crypto data");
 
-    return data.map((crypto: any) => ({
-      id: crypto.id,
-      name: crypto.name,
-      symbol: crypto.symbol,
-      imageUrl: crypto.image,
-      current_price: crypto.current_price,
-      market_cap: crypto.market_cap,
-      price_change_percentage_24h: crypto.price_change_percentage_24h,
-    }));
-  } catch (error) {
-    console.error("Error fetching crypto data:", error);
-    return [];
+        const data = await response.json();
+
+        return data.map((crypto: any) => ({
+          id: crypto.id,
+          name: crypto.name,
+          symbol: crypto.symbol,
+          imageUrl: crypto.image,
+          current_price: crypto.current_price,
+          market_cap: crypto.market_cap,
+          price_change_percentage_24h: crypto.price_change_percentage_24h,
+        }));
+      } catch (error) {
+        console.error("Error fetching crypto data:", error);
+        return [];
+      }
+    })();
   }
+  return cryptoDataPromise;
 }
 
-export type CryptoNewsArticle = {
+export type TrendingCoin = {
   id: string;
-  title: string;
-  description: string;
-  url: string;
+  name: string;
+  symbol: string;
+  imageUrl: string;
+  marketCapRank: number | null;
 };
 
-export async function fetchCryptoNews(): Promise<CryptoNewsArticle[]> {
+export async function fetchTrendingCoins(): Promise<TrendingCoin[]> {
   try {
-    const response = await fetch(
-      "https://cryptopanic.com/api/v1/posts/?public=true"
-    );
+    const response = await fetchWithRetry("https://api.coingecko.com/api/v3/search/trending");
 
-    if (!response.ok) throw new Error("Failed to fetch crypto news");
+    if (!response.ok) throw new Error("Failed to fetch trending coins");
 
     const data = await response.json();
 
-    return data.results.map((news: any) => ({
-      id: news.id || Math.random().toString(36).substring(7),
-      title: news.title,
-      description: news.body || "No description available.",
-      url: news.url,
+    return (data.coins ?? []).slice(0, 6).map(({ item }: any) => ({
+      id: item.id,
+      name: item.name,
+      symbol: item.symbol,
+      imageUrl: item.large ?? item.small ?? item.thumb,
+      marketCapRank: item.market_cap_rank ?? null,
     }));
   } catch (error) {
-    console.error("Error fetching crypto news:", error);
+    console.error("Error fetching trending coins:", error);
     return [];
   }
 }
@@ -73,7 +101,7 @@ export async function fetchCryptoHistoricalData(
   days: number = 30
 ): Promise<CryptoHistoricalData> {
   try {
-    const response = await fetch(
+    const response = await fetchWithRetry(
       `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=gbp&days=${days}&sparkline=false`
     );
 

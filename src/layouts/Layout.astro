@@ -1,5 +1,11 @@
 ---
 import DarkModeToggle from '../components/DarkModeToggle.jsx';
+
+type Props = {
+  title?: string;
+};
+
+const { title = "Crypto Tracker" } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -8,32 +14,44 @@ import DarkModeToggle from '../components/DarkModeToggle.jsx';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Track top 10 cryptocurrencies with live price updates">
-  <title>Crypto Tracker</title>
-  <link rel="icon" href="/favicon.ico" />
+  <meta name="description" content="Track the top 10 cryptocurrencies with live GBP prices, market caps and historical charts.">
+  <title>{title}</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://api.coingecko.com">
   <link rel="stylesheet" href="/src/styles/global.css" />
+  <script is:inline>
+    // Applied before first paint to avoid a flash of the wrong theme.
+    (function () {
+      var stored = localStorage.getItem("theme");
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var isDark = stored ? stored === "dark" : prefersDark;
+      document.documentElement.classList.toggle("dark", isDark);
+    })();
+  </script>
 </head>
 
-<body class="transition-colors duration-300 bg-white text-black dark:bg-black dark:text-white">
-  <!-- Header Section -->
-  <header class="p-4 flex justify-between items-center shadow-md rounded-lg fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800">
-    <a href="/" class="text-xl font-bold hover:underline uppercase">
-      Crypto Tracker
-    </a>
-    <!-- Dark Mode Toggle Button -->
-    <DarkModeToggle client:only="react" ariaLabel="Toggle dark mode" />
+<body class="min-h-screen bg-surface text-ink">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-surface">
+    Skip to content
+  </a>
+
+  <header class="fixed top-0 left-0 right-0 z-50 border-b border-border bg-surface/80 backdrop-blur">
+    <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
+      <a href="/" class="text-lg font-bold tracking-tight text-ink hover:text-accent">
+        Crypto Tracker
+      </a>
+      <DarkModeToggle client:load />
+    </div>
   </header>
 
-  <!-- Main Content Section -->
-  <main class="p-6 max-w-screen-lg mx-auto text-center pt-16">
+  <main id="main" class="mx-auto max-w-5xl px-4 pt-24 pb-16 sm:px-6">
     <slot />
   </main>
 
-  <!-- Footer Section -->
-  <footer class="py-4 text-center mt-8">
-    <p class="text-sm">
-      &copy; 2025 Crypto Tracker. All rights reserved.
-    </p>
+  <footer class="border-t border-border py-6 text-center text-sm text-ink-muted">
+    <p>&copy; {new Date().getFullYear()} Crypto Tracker. Prices via CoinGecko, for informational purposes only.</p>
   </footer>
 </body>
 

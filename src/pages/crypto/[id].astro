@@ -2,34 +2,78 @@
 import Layout from "../../layouts/Layout.astro";
 import CryptoChart from "../../components/CryptoChart.tsx";
 import { fetchCryptoData, fetchCryptoHistoricalData } from "../../utils/fetchCrypto";
+import type { Crypto } from "../../utils/fetchCrypto";
 
 export async function getStaticPaths() {
   const cryptos = await fetchCryptoData();
   return cryptos.map((crypto) => ({
     params: { id: crypto.id },
+    props: { crypto },
   }));
 }
 
-const { id } = Astro.params;
-const historicalData = await fetchCryptoHistoricalData(id);
+type Props = { crypto: Crypto };
 
-// Ensure historical data is available
-if (!historicalData || historicalData.prices.length === 0) {
-  throw new Error(`No historical data found for ${id}`);
-}
+const { crypto } = Astro.props as Props;
+const historicalData = await fetchCryptoHistoricalData(crypto.id);
 
 const labels = historicalData.prices.map(([timestamp]) =>
-  new Date(timestamp).toLocaleDateString()
+  new Date(timestamp).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
 );
-const prices = historicalData.prices.map(([_, price]) => price);
+const prices = historicalData.prices.map(([, price]) => price);
+
+const gbp = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" });
+const gbpCompact = new Intl.NumberFormat("en-GB", {
+  style: "currency",
+  currency: "GBP",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+const isPositive = crypto.price_change_percentage_24h >= 0;
 ---
 
-<Layout>
-  <h1 class="text-3xl font-extrabold text-center mb-6">Historical Data for {id.toUpperCase()}</h1>
+<Layout title={`${crypto.name} (${crypto.symbol.toUpperCase()}) — Crypto Tracker`}>
+  <a href="/" class="mb-6 inline-flex items-center gap-1 text-sm font-semibold text-accent hover:underline">
+    <span aria-hidden="true">←</span> Back to all cryptocurrencies
+  </a>
 
-  <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-    <CryptoChart labels={labels} prices={prices} client:only="react" />
-  </div>
+  <header class="mb-8 flex items-center gap-4">
+    <img src={crypto.imageUrl} alt="" width={56} height={56} class="h-14 w-14 rounded-full" />
+    <div>
+      <h1 class="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+        {crypto.name} <span class="text-ink-muted">({crypto.symbol.toUpperCase()})</span>
+      </h1>
+      <p class={isPositive ? "font-medium text-positive" : "font-medium text-negative"}>
+        {isPositive ? "+" : ""}{crypto.price_change_percentage_24h.toFixed(2)}% (24h)
+      </p>
+    </div>
+  </header>
 
-  <a href="/" class="block text-center mt-4 text-teal-700 font-semibold">← Back to Cryptos</a>
+  <dl class="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
+    <div class="rounded-2xl border border-border bg-surface-raised p-4">
+      <dt class="text-sm text-ink-muted">Price</dt>
+      <dd class="text-lg font-semibold text-ink">{gbp.format(crypto.current_price)}</dd>
+    </div>
+    <div class="rounded-2xl border border-border bg-surface-raised p-4">
+      <dt class="text-sm text-ink-muted">Market cap</dt>
+      <dd class="text-lg font-semibold text-ink">{gbpCompact.format(crypto.market_cap)}</dd>
+    </div>
+    <div class="col-span-2 rounded-2xl border border-border bg-surface-raised p-4 sm:col-span-1">
+      <dt class="text-sm text-ink-muted">30-day range</dt>
+      <dd class="text-lg font-semibold text-ink">
+        {prices.length > 0
+          ? `${gbp.format(Math.min(...prices))} – ${gbp.format(Math.max(...prices))}`
+          : "Unavailable"}
+      </dd>
+    </div>
+  </dl>
+
+  <section aria-labelledby="chart-heading" class="rounded-2xl border border-border bg-surface-raised p-4 sm:p-6">
+    <h2 id="chart-heading" class="mb-4 text-lg font-semibold text-ink">30-day price history</h2>
+    {prices.length > 0 ? (
+      <CryptoChart labels={labels} prices={prices} currencyLabel={`${crypto.name} price (GBP)`} client:visible />
+    ) : (
+      <p class="text-ink-muted" role="status">Historical data is unavailable for {crypto.name} right now.</p>
+    )}
+  </section>
 </Layout>
