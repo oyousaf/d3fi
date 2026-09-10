@@ -1,0 +1,98 @@
+---
+type Props = {
+  labels: string[];
+  prices: number[];
+  currencyLabel?: string;
+};
+
+const { labels, prices, currencyLabel = "Price (GBP)" } = Astro.props;
+
+const min = prices.length ? Math.min(...prices) : null;
+const max = prices.length ? Math.max(...prices) : null;
+const ariaLabel =
+  min !== null && max !== null
+    ? `Line chart of ${currencyLabel} over time, ranging from £${min.toLocaleString()} to £${max.toLocaleString()}.`
+    : `Line chart of ${currencyLabel}.`;
+---
+
+<div class="h-100 w-full">
+  <canvas
+    id="crypto-chart"
+    role="img"
+    aria-label={ariaLabel}
+    data-labels={JSON.stringify(labels)}
+    data-prices={JSON.stringify(prices)}
+    data-currency-label={currencyLabel}
+  ></canvas>
+</div>
+
+<script>
+  import Chart from "chart.js/auto";
+
+  function readCssVar(name: string, fallback: string): string {
+    const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return value || fallback;
+  }
+
+  const canvas = document.getElementById("crypto-chart") as HTMLCanvasElement | null;
+  const ctx = canvas?.getContext("2d");
+
+  if (canvas && ctx) {
+    const labels: string[] = JSON.parse(canvas.dataset.labels ?? "[]");
+    const prices: number[] = JSON.parse(canvas.dataset.prices ?? "[]");
+    const currencyLabel = canvas.dataset.currencyLabel ?? "Price (GBP)";
+
+    const accent = readCssVar("--color-accent", "#0d9488");
+    const ink = readCssVar("--color-ink", "#18181b");
+    const inkMuted = readCssVar("--color-ink-muted", "#52525b");
+    const border = readCssVar("--color-border", "#e4e4e7");
+    const surfaceRaised = readCssVar("--color-surface-raised", "#f4f4f5");
+
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels.length > 0 ? labels : ["Jan", "Feb", "Mar"],
+        datasets: [
+          {
+            label: currencyLabel,
+            data: prices.length > 0 ? prices : [200, 250, 300],
+            borderColor: accent,
+            backgroundColor: accent,
+            borderWidth: 2,
+            fill: false,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: accent,
+            tension: 0.25,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { intersect: false, mode: "index" },
+        scales: {
+          x: {
+            ticks: { color: inkMuted, maxTicksLimit: 8 },
+            grid: { color: border },
+          },
+          y: {
+            beginAtZero: false,
+            ticks: { color: inkMuted },
+            grid: { color: border },
+          },
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            titleColor: ink,
+            bodyColor: ink,
+            backgroundColor: surfaceRaised,
+            borderColor: border,
+            borderWidth: 1,
+          },
+        },
+      },
+    });
+  }
+</script>

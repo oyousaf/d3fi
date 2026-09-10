@@ -1,7 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import CryptoGrid from "../components/CryptoGrid.tsx";
-import TrendingGrid from "../components/TrendingGrid.tsx";
+import CryptoGrid from "../components/CryptoGrid.astro";
+import TrendingGrid from "../components/TrendingGrid.astro";
 import { fetchCryptoData, fetchTrendingCoins } from "../utils/fetchCrypto";
 
 const cryptos = await fetchCryptoData();
@@ -13,13 +13,13 @@ const trending = await fetchTrendingCoins();
     <h1 id="top-cryptos-heading" class="mb-6 text-3xl font-extrabold tracking-tight text-ink">
       Top 10 Cryptocurrencies
     </h1>
-    <CryptoGrid cryptos={cryptos} client:visible />
+    <CryptoGrid cryptos={cryptos} />
   </section>
 
   <section aria-labelledby="trending-heading" class="mt-16">
     <h2 id="trending-heading" class="mb-6 text-2xl font-bold tracking-tight text-ink">
       Trending Right Now
     </h2>
-    <TrendingGrid coins={trending} client:visible />
+    <TrendingGrid coins={trending} />
   </section>
 </Layout>

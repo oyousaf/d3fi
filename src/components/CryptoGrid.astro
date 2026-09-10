@@ -1,0 +1,81 @@
+---
+import type { Crypto } from "../utils/fetchCrypto";
+
+type Props = { cryptos: Crypto[] };
+const { cryptos } = Astro.props;
+
+const gbp = new Intl.NumberFormat("en-GB", {
+  style: "currency",
+  currency: "GBP",
+  maximumFractionDigits: 2,
+});
+
+const gbpCompact = new Intl.NumberFormat("en-GB", {
+  style: "currency",
+  currency: "GBP",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+---
+
+{
+  cryptos.length === 0 ? (
+    <p class="text-center text-ink-muted" role="status">
+      Live prices are unavailable right now. Please try again shortly.
+    </p>
+  ) : (
+    <ul class="m-0 grid list-none grid-cols-1 gap-5 p-0 sm:grid-cols-2 lg:grid-cols-3">
+      {cryptos.map((crypto, index) => {
+        const isPositive = crypto.price_change_percentage_24h >= 0;
+        return (
+          <li>
+            <a
+              href={`/crypto/${crypto.id}`}
+              class="group block h-full animate-fade-in-up rounded-2xl border border-border bg-surface-raised p-5 transition-colors hover:border-accent"
+              style={`animation-delay: ${index * 50}ms`}
+            >
+              <div class="flex items-center gap-3">
+                <img
+                  src={crypto.imageUrl}
+                  alt=""
+                  width={40}
+                  height={40}
+                  loading={index < 3 ? "eager" : "lazy"}
+                  decoding="async"
+                  class="h-10 w-10 rounded-full"
+                />
+                <div class="min-w-0">
+                  <h3 class="truncate font-semibold text-ink">{crypto.name}</h3>
+                  <p class="text-sm uppercase text-ink-muted">{crypto.symbol}</p>
+                </div>
+              </div>
+
+              <dl class="mt-4 space-y-1.5">
+                <div class="flex items-baseline justify-between gap-2">
+                  <dt class="text-sm text-ink-muted">Price</dt>
+                  <dd class="font-medium text-ink">{gbp.format(crypto.current_price)}</dd>
+                </div>
+                <div class="flex items-baseline justify-between gap-2">
+                  <dt class="text-sm text-ink-muted">Market cap</dt>
+                  <dd class="text-ink">{gbpCompact.format(crypto.market_cap)}</dd>
+                </div>
+                <div class="flex items-baseline justify-between gap-2">
+                  <dt class="text-sm text-ink-muted">24h change</dt>
+                  <dd class={isPositive ? "font-medium text-positive" : "font-medium text-negative"}>
+                    {isPositive ? "+" : ""}
+                    {crypto.price_change_percentage_24h.toFixed(2)}%
+                  </dd>
+                </div>
+              </dl>
+
+              <span class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-accent group-hover:underline">
+                View details
+                <span aria-hidden="true">→</span>
+              </span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  )
+}

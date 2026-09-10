@@ -1,0 +1,49 @@
+---
+import type { TrendingCoin } from "../utils/fetchCrypto";
+
+type Props = { coins: TrendingCoin[] };
+const { coins } = Astro.props;
+---
+
+{
+  coins.length === 0 ? (
+    <p class="text-center text-ink-muted" role="status">
+      Trending coins are unavailable right now. Please try again shortly.
+    </p>
+  ) : (
+    <ul class="m-0 grid list-none grid-cols-1 gap-5 p-0 sm:grid-cols-2 lg:grid-cols-3">
+      {coins.map((coin, index) => (
+        <li>
+          <a
+            href={`/crypto/${coin.id}`}
+            class="group flex h-full animate-fade-in-up items-center gap-3 rounded-2xl border border-border bg-surface-raised p-4 transition-colors hover:border-accent"
+            style={`animation-delay: ${index * 50}ms`}
+          >
+            <img
+              src={coin.imageUrl}
+              alt=""
+              width={36}
+              height={36}
+              loading="lazy"
+              decoding="async"
+              class="h-9 w-9 rounded-full"
+            />
+            <div class="min-w-0">
+              <p class="truncate font-semibold text-ink">{coin.name}</p>
+              <p class="text-sm uppercase text-ink-muted">
+                {coin.symbol}
+                {coin.marketCapRank ? ` · Rank #${coin.marketCapRank}` : ""}
+              </p>
+            </div>
+            <span
+              class="ml-auto text-accent opacity-0 transition-opacity group-hover:opacity-100"
+              aria-hidden="true"
+            >
+              →
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}

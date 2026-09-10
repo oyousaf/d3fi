@@ -1,6 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import CryptoChart from "../../components/CryptoChart.tsx";
+import CryptoChart from "../../components/CryptoChart.astro";
 import { fetchCryptoData, fetchCryptoHistoricalData } from "../../utils/fetchCrypto";
 import type { Crypto } from "../../utils/fetchCrypto";
 
@@ -71,7 +71,7 @@ const isPositive = crypto.price_change_percentage_24h >= 0;
   <section aria-labelledby="chart-heading" class="rounded-2xl border border-border bg-surface-raised p-4 sm:p-6">
     <h2 id="chart-heading" class="mb-4 text-lg font-semibold text-ink">30-day price history</h2>
     {prices.length > 0 ? (
-      <CryptoChart labels={labels} prices={prices} currencyLabel={`${crypto.name} price (GBP)`} client:visible />
+      <CryptoChart labels={labels} prices={prices} currencyLabel={`${crypto.name} price (GBP)`} />
     ) : (
       <p class="text-ink-muted" role="status">Historical data is unavailable for {crypto.name} right now.</p>
     )}

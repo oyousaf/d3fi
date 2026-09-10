@@ -1,5 +1,5 @@
 ---
-import DarkModeToggle from '../components/DarkModeToggle.jsx';
+import DarkModeToggle from '../components/DarkModeToggle.astro';
 
 type Props = {
   title?: string;
@@ -33,7 +33,7 @@ const { title = "Crypto Tracker" } = Astro.props;
 </head>
 
 <body class="min-h-screen bg-surface text-ink">
-  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-surface">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-60 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-surface">
     Skip to content
   </a>
 
@@ -42,7 +42,7 @@ const { title = "Crypto Tracker" } = Astro.props;
       <a href="/" class="text-lg font-bold tracking-tight text-ink hover:text-accent">
         Crypto Tracker
       </a>
-      <DarkModeToggle client:load />
+      <DarkModeToggle />
     </div>
   </header>
 
