@@ -22,4 +22,3 @@ npm run check     # run astro check on its own
 ## Notes
 
 - All pages are statically generated at build time; there is no server runtime.
-- CoinGecko's free tier rate-limits aggressively, so data fetching includes retry/backoff — a `build` can take a few minutes without an API key.
